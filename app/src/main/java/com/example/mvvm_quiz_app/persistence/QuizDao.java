@@ -5,6 +5,7 @@ import com.example.mvvm_quiz_app.model.Question;
 import java.util.List;
 
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
@@ -16,8 +17,8 @@ public interface QuizDao {
     @Insert
     void insertNotes(Question question);
 
-    @Query("SELECT * FROM quiz_table ORDER BY id ASC")
-    LiveData<List<Question>> getAllQuestion();
+    @Query("SELECT * FROM quiz_table")
+    List<Question> getAllQuestion();
 
     @Delete
     void delete(Question question);

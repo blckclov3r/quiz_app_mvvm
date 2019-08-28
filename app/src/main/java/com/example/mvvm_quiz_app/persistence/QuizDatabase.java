@@ -32,6 +32,7 @@ public abstract class QuizDatabase extends RoomDatabase {
         @Override
         public void onCreate(@NonNull SupportSQLiteDatabase db) {
             super.onCreate(db);
+            new InsertAsyncTask(instance).execute();
         }
     };
 
