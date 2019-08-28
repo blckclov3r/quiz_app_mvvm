@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -24,6 +25,8 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public class QuizActivity extends AppCompatActivity {
+
+    public static final String EXTRA_SCORE = "extraScore";
 
     private static final String TAG = "QuizActivity";
     private static final String COMMON_TAG = "mAppLog";
@@ -50,6 +53,7 @@ public class QuizActivity extends AppCompatActivity {
     private boolean answered = false;
 
     private List<Question> mQuestionList = new ArrayList<>();
+    private long backPressedTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +81,7 @@ public class QuizActivity extends AppCompatActivity {
 
             mQuestionList = mQuizViewModel.getAllQuestion();
             questionCountTotal = mQuestionList.size();
+            Log.d(COMMON_TAG,TAG+" questionTotal: "+questionCountTotal);
 
             Collections.shuffle(mQuestionList);
             showNextQuestion();
@@ -169,6 +174,21 @@ public class QuizActivity extends AppCompatActivity {
     }
 
     private void finishQuiz() {
+        Intent resultIntent = new Intent();
+        resultIntent.putExtra(EXTRA_SCORE,score);
+        setResult(RESULT_OK,resultIntent);
         finish();
+    }
+
+    @Override
+    public void onBackPressed() {
+
+        if(backPressedTime + 2000 > System.currentTimeMillis()){
+            finishQuiz();
+        }else{
+            Toast.makeText(this, "Press back again to finish", Toast.LENGTH_SHORT).show();
+        }
+        backPressedTime = System.currentTimeMillis();
+
     }
 }
