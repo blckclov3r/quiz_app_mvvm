@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -22,11 +23,13 @@ import com.example.mvvm_quiz_app.viewmodel.QuizViewModel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 
 public class QuizActivity extends AppCompatActivity {
 
     public static final String EXTRA_SCORE = "extraScore";
+    private static long COUNTDOWN_IN_MILLIS = 30000;
 
     private static final String TAG = "QuizActivity";
     private static final String COMMON_TAG = "mAppLog";
@@ -42,6 +45,10 @@ public class QuizActivity extends AppCompatActivity {
     private Button confirmNext_btn;
 
     private ColorStateList textColorDefaultRb;
+    private ColorStateList textColorDefaultCd;
+
+    private CountDownTimer countDownTimer;
+    private long timeLeftInMillis;
 
     private QuizViewModel mQuizViewModel;
 
@@ -71,6 +78,9 @@ public class QuizActivity extends AppCompatActivity {
         confirmNext_btn = findViewById(R.id.confirmNext_button);
 
         textColorDefaultRb = rb1.getTextColors();
+        textColorDefaultRb = rb2.getTextColors();
+        textColorDefaultRb = rb3.getTextColors();
+        textColorDefaultCd = countDown_tv.getTextColors();
 
         mQuestionList = new ArrayList<>();
 
@@ -126,13 +136,48 @@ public class QuizActivity extends AppCompatActivity {
             questionCount_tv.setText("Question: " + questionCounter + "/" + questionCountTotal);
             answered = false;
             confirmNext_btn.setText("Confirm");
+
+            timeLeftInMillis = COUNTDOWN_IN_MILLIS;
+            startCountDown();
         } else {
             finishQuiz();
         }
     }
 
+    private void startCountDown(){
+        countDownTimer = new CountDownTimer(timeLeftInMillis,1000) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                timeLeftInMillis = millisUntilFinished;
+                updateCountDownText();
+            }
+
+            @Override
+            public void onFinish() {
+                timeLeftInMillis = 0;
+                updateCountDownText();
+                checkAnswer();
+            }
+        }.start();
+    }
+
+    private void updateCountDownText(){
+        int minutes = (int) ((timeLeftInMillis / 1000) / 60);
+        int seconds  = (int) (timeLeftInMillis/1000) % 60;
+        String timeFormatted = String.format(Locale.getDefault(),"%02d:%02d",minutes,seconds);
+        countDown_tv.setText(timeFormatted);
+        if(timeLeftInMillis <= 10000){
+            countDown_tv.setTextColor(Color.RED);
+        }else{
+            countDown_tv.setTextColor(textColorDefaultCd);
+        }
+    }
+
     private void checkAnswer() {
         answered = true;
+
+        countDownTimer.cancel();
+
         RadioButton rbSelected = findViewById(rbGroup.getCheckedRadioButtonId());
         int answerNr = rbGroup.indexOfChild(rbSelected) + 1; //start at 0 then add 1 to start at 1
         if (answerNr == currentQuestion.getAnswerNr()) {
@@ -190,5 +235,13 @@ public class QuizActivity extends AppCompatActivity {
         }
         backPressedTime = System.currentTimeMillis();
 
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(countDownTimer != null){
+            countDownTimer.cancel();
+        }
     }
 }
